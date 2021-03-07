@@ -1,0 +1,76 @@
+@page "/Create"
+<link href="/validation.css" rel="stylesheet" />
+ 
+<h1 class="bg-info text-white">Create Reservation</h1>
+<h2 class="text-success p-2">@FormSubmitMessage</h2>
+ 
+<EditForm Model="ReservationData" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary />
+ 
+    <div class="form-group">
+        <label>Name</label>
+        <ValidationMessage For="@(() => ReservationData.Name)" />
+        <InputText class="form-control" @bind-Value="ReservationData.Name" />
+    </div>
+    <div class="form-group">
+        <label>Start Location</label>
+        <ValidationMessage For="@(() => ReservationData.StartLocation)" />
+        <InputText class="form-control" @bind-Value="ReservationData.StartLocation" />
+    </div>
+    <div class="form-group">
+        <label>End Location</label>
+        <ValidationMessage For="@(() => ReservationData.EndLocation)" />
+        <InputText class="form-control" @bind-Value="ReservationData.EndLocation" />
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Click</button>
+    </div>
+</EditForm>
+ 
+@if (ReceivedReservation != null)
+{
+    <h3 class="text-warning p-2">Reservation</h3>
+    <table class="table table-sm table-striped table-bordered m-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Start Location</th>
+                <th>End Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@ReceivedReservation.Id</td>
+                <td>@ReceivedReservation.Name</td>
+                <td>@ReceivedReservation.StartLocation</td>
+                <td>@ReceivedReservation.EndLocation</td>
+            </tr>
+        </tbody>
+    </table>
+}
+ 
+@code {
+    public Reservation ReservationData = new Reservation();
+    Reservation ReceivedReservation;
+    public string FormSubmitMessage { get; set; } = "Reservation Not Created";
+ 
+    public async Task HandleValidSubmit()
+    {
+        ReceivedReservation = new Reservation();
+        using (var httpClient = new HttpClient())
+        {
+            StringContent content = new StringContent(JsonSerializer.Serialize(ReservationData), Encoding.UTF8, "application/json");
+ 
+            using (var response = await httpClient.PostAsync("https://localhost:5001/api/Reservations", content))
+            {
+                string apiResponse = await response.Content.ReadAsStringAsync();
+                ReceivedReservation = JsonSerializer.Deserialize<Reservation>(apiResponse);
+            }
+        }
+        FormSubmitMessage = "Reservation Created";
+    }
+ 
+    public void HandleInvalidSubmit() => FormSubmitMessage = "Invalid Reservation";
+}

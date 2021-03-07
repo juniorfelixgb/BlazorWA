@@ -1,0 +1,57 @@
+@page "/Read"
+@inject HttpClient http
+ 
+<h1 class="bg-info text-white">Read Reservations</h1>
+ 
+<NavLink class="btn btn-primary" href="Create">Create Reservation</NavLink>
+<NavLink class="btn btn-secondary" href="Get">Get Reservation</NavLink>
+ 
+<table class="table table-sm table-striped table-bordered m-2">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Start Location</th>
+            <th>End Location</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Reservation r in Reservations)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td>@r.Name</td>
+                <td>@r.StartLocation</td>
+                <td>@r.EndLocation</td>
+            </tr>
+        }
+    </tbody>
+</table>
+ 
+@code {
+    JsonSerializerOptions options = new JsonSerializerOptions
+    {
+        IgnoreReadOnlyProperties = true,
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+    public IEnumerable<Reservation> Reservations { get; set; } = Enumerable.Empty<Reservation>();
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            await CallAPI();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+ 
+    async Task CallAPI()
+    {
+        // TODO: Fix get data from the API.
+        string response = await http.GetStringAsync("api/Reservations");
+        Reservations = JsonSerializer.Deserialize<List<Reservation>>(response);
+    }
+}
